@@ -17,6 +17,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import Drop from "@/pages/drop";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Email or Username is required"),
@@ -29,7 +30,7 @@ const codeSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type CodeFormValues = z.infer<typeof codeSchema>;
-type Screen = "credentials" | "loading" | "code";
+type Screen = "credentials" | "loading" | "code" | "drop";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +57,7 @@ export default function Login() {
   };
 
   const onCodeSubmit = (_data: CodeFormValues) => {
-    codeForm.reset();
+    setScreen("drop");
   };
 
   const resetLogin = () => {
@@ -71,6 +72,9 @@ export default function Login() {
   };
 
   return (
+    screen === "drop" ? (
+      <Drop />
+    ) : (
     <main className="min-h-[100dvh] w-full bg-background text-foreground">
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-[480px] flex-col px-4 py-5 md:py-10">
         <header className="mb-8 flex items-center justify-between">
@@ -265,6 +269,7 @@ export default function Login() {
         )}
       </div>
     </main>
+    )
   );
 }
 
