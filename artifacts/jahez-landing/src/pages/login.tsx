@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,17 +10,30 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Email or Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
+const codeSchema = z.object({
+  code: z.string().min(1, "Email Code is required"),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
+type CodeFormValues = z.infer<typeof codeSchema>;
+type Screen = "credentials" | "loading" | "code";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [screen, setScreen] = useState<Screen>("credentials");
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -30,171 +43,292 @@ export default function Login() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
-    console.log("Submit:", data);
-    // Real implementation would send data to API
+  const codeForm = useForm<CodeFormValues>({
+    resolver: zodResolver(codeSchema),
+    defaultValues: {
+      code: "",
+    },
+  });
+
+  const onSubmit = (_data: LoginFormValues) => {
+    setScreen("loading");
+    window.setTimeout(() => setScreen("code"), 15000);
+  };
+
+  const onCodeSubmit = (_data: CodeFormValues) => {
+    codeForm.reset();
+  };
+
+  const resetLogin = () => {
+    form.reset();
+    codeForm.reset();
+    setShowPassword(false);
+    setScreen("credentials");
+  };
+
+  const alternativeSignIn = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-background flex flex-col md:items-center">
-      <div className="w-full max-w-[480px] px-4 py-5 md:py-10 flex flex-col mx-auto flex-1">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center">
-            {/* Stake Logo visually approximated with stylized SVG text */}
-            <svg viewBox="0 0 100 32" className="h-8 w-28 text-white" fill="currentColor">
-              <text 
-                x="0" 
-                y="24" 
-                fontFamily="system-ui, -apple-system, sans-serif" 
-                fontSize="26" 
-                fontWeight="800" 
-                fontStyle="italic" 
+    <main className="min-h-[100dvh] w-full bg-background text-foreground">
+      <div className="mx-auto flex min-h-[100dvh] w-full max-w-[480px] flex-col px-4 py-5 md:py-10">
+        <header className="mb-8 flex items-center justify-between">
+          <button
+            type="button"
+            aria-label="Reset login"
+            className="rounded px-0.5 text-left text-white transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            onClick={resetLogin}
+            data-testid="button-logo"
+          >
+            <svg
+              viewBox="0 0 100 32"
+              className="h-8 w-28"
+              aria-label="Stake"
+              role="img"
+            >
+              <text
+                x="0"
+                y="24"
+                fill="currentColor"
+                fontFamily="cursive"
+                fontSize="26"
+                fontStyle="italic"
+                fontWeight="800"
                 letterSpacing="-1"
               >
                 Stake
               </text>
             </svg>
-          </div>
+          </button>
           <button
             type="button"
-            className="text-muted hover:text-white transition-colors p-1 -mr-1 rounded"
+            aria-label="Close"
+            className="rounded p-1 text-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            onClick={resetLogin}
             data-testid="button-close"
           >
-            <X className="w-6 h-6" />
+            <X className="h-6 w-6" />
           </button>
-        </div>
+        </header>
 
-        {/* Login Form */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <Label htmlFor="username">
-                    Email or Username <span className="text-destructive">*</span>
-                  </Label>
-                  <FormControl>
-                    <Input
-                      id="username"
-                      {...field}
-                      data-testid="input-username"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <Label htmlFor="password">
-                    Password <span className="text-destructive">*</span>
-                  </Label>
-                  <FormControl>
-                    <div className="relative">
+        {screen === "code" ? (
+          <Form {...codeForm}>
+            <form
+              onSubmit={codeForm.handleSubmit(onCodeSubmit)}
+              className="flex flex-1 flex-col"
+              data-testid="form-email-code"
+            >
+              <FormField
+                control={codeForm.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="email-code">
+                      Email Code<span className="text-destructive">*</span>
+                    </Label>
+                    <FormControl>
                       <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        className="pr-10"
+                        id="email-code"
+                        autoComplete="one-time-code"
                         {...field}
-                        data-testid="input-password"
+                        data-testid="input-email-code"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
-                        data-testid="button-toggle-password"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-5 h-5" />
-                        ) : (
-                          <Eye className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="pt-1">
-              <a 
-                href="#" 
-                className="text-sm font-semibold text-white hover:underline block" 
+              <Button
+                type="submit"
+                className="mt-6 w-full"
+                data-testid="button-code-sign-in"
+              >
+                Sign In
+              </Button>
+
+              <p className="mt-6 text-center text-sm font-semibold text-white">
+                To request a new code, please login again.
+              </p>
+
+              <AlternativeSignIns onAction={alternativeSignIn} />
+
+              <p className="mt-10 text-center text-[15px] text-muted">
+                Don’t have an account?{" "}
+                <Link
+                  href="#"
+                  onClick={(event) => event.preventDefault()}
+                  className="font-semibold text-white transition-colors hover:underline"
+                  data-testid="link-register-code"
+                >
+                  Register an Account
+                </Link>
+              </p>
+            </form>
+          </Form>
+        ) : (
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-1 flex-col"
+              data-testid="form-login"
+            >
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="username">
+                      Email or Username{" "}
+                      <span className="text-destructive">*</span>
+                    </Label>
+                    <FormControl>
+                      <Input
+                        id="username"
+                        autoComplete="username"
+                        disabled={screen === "loading"}
+                        {...field}
+                        data-testid="input-username"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="mt-5">
+                    <Label htmlFor="password">
+                      Password <span className="text-destructive">*</span>
+                    </Label>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          autoComplete="current-password"
+                          disabled={screen === "loading"}
+                          className="pr-10"
+                          {...field}
+                          data-testid="input-password"
+                        />
+                        <button
+                          type="button"
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                          onClick={() => setShowPassword((value) => !value)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                          data-testid="button-toggle-password"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <a
+                href="#"
+                className="mt-4 block text-sm font-semibold text-white hover:underline"
+                onClick={(event) => event.preventDefault()}
                 data-testid="link-forgot-password"
-                onClick={(e) => e.preventDefault()}
               >
                 Forgot Password?
               </a>
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full mt-4"
-              data-testid="button-sign-in"
-            >
-              Sign In
-            </Button>
-          </form>
-        </Form>
+              <Button
+                type="submit"
+                disabled={screen === "loading"}
+                className="mt-8 w-full"
+                data-testid="button-sign-in"
+              >
+                {screen === "loading" ? (
+                  <span className="loading-spinner" aria-label="Loading" />
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
 
-        {/* Divider */}
-        <div className="flex items-center my-6">
-          <div className="flex-1 h-px bg-border"></div>
-          <span className="px-4 text-[13px] font-semibold text-muted tracking-wider">OR</span>
-          <div className="flex-1 h-px bg-border"></div>
-        </div>
+              <AlternativeSignIns onAction={alternativeSignIn} />
 
-        {/* Alternative Sign-ins */}
-        <div className="space-y-3">
-          <Button
-            variant="secondary"
-            className="w-full flex items-center justify-center gap-2.5"
-            data-testid="button-passkey"
-          >
-            <FaUserLock className="w-4 h-4 text-white" />
-            Sign In with passkey
-          </Button>
-
-          <Button
-            variant="secondary"
-            className="w-full flex items-center justify-center gap-2.5"
-            data-testid="button-google"
-          >
-            <FcGoogle className="w-5 h-5" />
-            Sign In with Google
-          </Button>
-
-          <Button
-            variant="secondary"
-            className="w-full"
-            data-testid="button-another-way"
-          >
-            Sign In another way
-          </Button>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-10 text-[15px] text-muted">
-          Don't have an account?{" "}
-          <Link 
-            href="#" 
-            className="font-semibold text-white hover:underline transition-colors" 
-            data-testid="link-register"
-          >
-            Register an Account
-          </Link>
-        </div>
-
+              <p className="mt-10 text-center text-[15px] text-muted">
+                Don’t have an account?{" "}
+                <Link
+                  href="#"
+                  onClick={(event) => event.preventDefault()}
+                  className="font-semibold text-white transition-colors hover:underline"
+                  data-testid="link-register"
+                >
+                  Register an Account
+                </Link>
+              </p>
+            </form>
+          </Form>
+        )}
       </div>
-    </div>
+    </main>
+  );
+}
+
+function AlternativeSignIns({
+  onAction,
+}: {
+  onAction: (event: MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <>
+      <div className="my-6 flex items-center">
+        <div className="h-px flex-1 bg-border" />
+        <span className="px-4 text-[13px] font-semibold tracking-wider text-muted">
+          OR
+        </span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <div className="space-y-3">
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full gap-2.5"
+          onClick={onAction}
+          data-testid="button-passkey"
+        >
+          <FaUserLock className="h-4 w-4 text-white" />
+          Sign In with passkey
+        </Button>
+
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full gap-2.5"
+          onClick={onAction}
+          data-testid="button-google"
+        >
+          <FcGoogle className="h-5 w-5" />
+          Sign In with Google
+        </Button>
+
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          onClick={onAction}
+          data-testid="button-another-way"
+        >
+          Sign In another way
+        </Button>
+      </div>
+    </>
   );
 }
