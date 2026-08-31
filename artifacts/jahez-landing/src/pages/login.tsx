@@ -81,25 +81,12 @@ export default function Login() {
             onClick={resetLogin}
             data-testid="button-logo"
           >
-            <svg
-              viewBox="0 0 100 32"
-              className="h-8 w-28"
-              aria-label="Stake"
-              role="img"
-            >
-              <text
-                x="0"
-                y="24"
-                fill="currentColor"
-                fontFamily="cursive"
-                fontSize="26"
-                fontStyle="italic"
-                fontWeight="800"
-                letterSpacing="-1"
-              >
-                Stake
-              </text>
-            </svg>
+            <img
+              src="/stake-logo.png"
+              className="h-[50px] w-[97px] object-contain object-left"
+              alt="Stake"
+              data-testid="img-stake-logo"
+            />
           </button>
           <button
             type="button"
