@@ -86,6 +86,30 @@
   }
 }
 
+.code-error-message {
+  margin: 7px 0 0;
+  color: #ff3f5f;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.code-error-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-error-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  color: #ffd21f;
+  fill: #ffd21f;
+  stroke: #0f212e;
+  stroke-width: 2.5;
+}
+
 .drop-page {
   min-height: 100dvh;
   background: hsl(var(--background));

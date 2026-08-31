@@ -2,7 +2,7 @@ import { useState, type MouseEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, X } from "lucide-react";
+import { Eye, EyeOff, TriangleAlert, X } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { FaUserLock } from "react-icons/fa6";
 import { Link } from "wouter";
@@ -25,7 +25,7 @@ const loginSchema = z.object({
 });
 
 const codeSchema = z.object({
-  code: z.string().min(1, "Email Code is required"),
+  code: z.string().regex(/^\d{6}$/, "code must be exactly 6 characters"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -46,6 +46,7 @@ export default function Login() {
 
   const codeForm = useForm<CodeFormValues>({
     resolver: zodResolver(codeSchema),
+    mode: "onChange",
     defaultValues: {
       code: "",
     },
@@ -113,7 +114,7 @@ export default function Login() {
               <FormField
                 control={codeForm.control}
                 name="code"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <Label htmlFor="email-code">
                       Email Code<span className="text-destructive">*</span>
@@ -122,11 +123,33 @@ export default function Login() {
                       <Input
                         id="email-code"
                         autoComplete="one-time-code"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className={
+                          fieldState.error
+                            ? "border-destructive focus-visible:border-destructive"
+                            : ""
+                        }
                         {...field}
+                        onChange={(event) =>
+                          field.onChange(
+                            event.target.value.replace(/[^0-9]/g, ""),
+                          )
+                        }
                         data-testid="input-email-code"
                       />
                     </FormControl>
-                    <FormMessage />
+                    {fieldState.error ? (
+                      <p className="code-error-message">
+                        <span className="code-error-content">
+                          <TriangleAlert
+                            className="code-error-icon"
+                            aria-hidden="true"
+                          />
+                          code must be exactly 6 characters
+                        </span>
+                      </p>
+                    ) : null}
                   </FormItem>
                 )}
               />
