@@ -104,13 +104,14 @@ export default function Login() {
           </button>
         </header>
 
-        {screen === "code" ? (
-          <Form {...codeForm}>
-            <form
-              onSubmit={codeForm.handleSubmit(onCodeSubmit)}
-              className="flex flex-1 flex-col"
-              data-testid="form-email-code"
-            >
+        <div className="px-2.5">
+          {screen === "code" ? (
+            <Form {...codeForm}>
+              <form
+                onSubmit={codeForm.handleSubmit(onCodeSubmit)}
+                className="flex flex-1 flex-col"
+                data-testid="form-email-code"
+              >
               <FormField
                 control={codeForm.control}
                 name="code"
@@ -179,15 +180,15 @@ export default function Login() {
                   Register an Account
                 </Link>
               </p>
-            </form>
-          </Form>
-        ) : (
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-1 flex-col"
-              data-testid="form-login"
-            >
+              </form>
+            </Form>
+          ) : (
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="flex flex-1 flex-col"
+                data-testid="form-login"
+              >
               <FormField
                 control={form.control}
                 name="username"
@@ -287,9 +288,10 @@ export default function Login() {
                   Register an Account
                 </Link>
               </p>
-            </form>
-          </Form>
-        )}
+              </form>
+            </Form>
+          )}
+        </div>
       </div>
     </main>
     )
